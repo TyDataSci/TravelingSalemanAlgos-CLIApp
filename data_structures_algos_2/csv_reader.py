@@ -1,6 +1,5 @@
 import csv
 from data_structs import HashTable
-import package
 
 package_file = 'data/WGU_package_file.csv'
 distance_file = 'data/WGUPS_distance_table.csv'
@@ -13,15 +12,12 @@ def get_vertices():
         spam = csv.DictReader(f)
         for row in spam:
             vertices.append(row['vertex'])
+
     return vertices
 
 
 def adjacency_matrix():
-    vertices = []
-    with open(distance_file) as f:
-        spam = csv.DictReader(f)
-        for row in spam:
-            vertices.append(row['vertex'])
+    vertices = get_vertices()
     dict_of_dict = {}
     for i in range(len(vertices)):
         single_dict = {}

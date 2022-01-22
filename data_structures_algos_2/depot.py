@@ -44,6 +44,7 @@ class Depot:
         for pkg in self.inventory:
             if pkg.vertex in north_bound:
                 if 'delayed' in pkg.info['Special Notes'].lower() and n_truck.time.time_delta < time(9, 5):
+                    pkg.at_hub = time_delta.Time(9, 5).clock_time
                     self.north_bound_hold.append(pkg)
                 elif 'wrong address' in pkg.info['Special Notes'].lower() and n_truck.time.time_delta < time(10, 20):
                     self.north_bound_hold.append(pkg)
@@ -51,6 +52,7 @@ class Depot:
                     self.north_bound_ready.append(pkg)
             else:
                 if 'delayed' in pkg.info['Special Notes'].lower() and s_truck.time.time_delta < time(9, 5):
+                    pkg.at_hub = time_delta.Time(9, 5).clock_time
                     self.south_bound_hold.append(pkg)
                 elif 'wrong address' in pkg.info['Special Notes'].lower() and s_truck.time.time_delta < time(10, 20):
                     self.south_bound_hold.append(pkg)
@@ -77,7 +79,6 @@ class Depot:
                 break
         if reroute_needed:
             self.reroute_truck(truck)
-        truck.log_route[truck.time.clock_time] = truck.name + ' En Route'
         if len(self.north_bound_ready) + len(self.north_bound_hold) > 0:
             truck.reload_needed = True
         else:
@@ -102,7 +103,6 @@ class Depot:
                 break
         if reroute_needed:
             self.reroute_truck(truck)
-        truck.log_route[truck.time.clock_time] = ' Truck En Route'
         if len(self.south_bound_ready) + len(self.south_bound_hold) > 0:
             truck.reload_needed = True
         else:
@@ -190,10 +190,6 @@ class Truck:
         self.origin = 0
         self.reload_needed = False
         self.trip = 0
-        self.log_route = {}
-        self.log_packages = {}
-        self.log_marginal_dist = {}
-        self.log_total_dist = {}
 
     def load(self, package):
         if len(self.inventory) == self.capacity:
@@ -211,13 +207,9 @@ class Truck:
             self.fix_wrong_address_package()
         current_package = self.inventory.popleft()
         current_package.info['trip'] = f'{self.name} Trip #{self.trip}'
-        self.log_packages[self.time.clock_time] = str(current_package)
-        self.log_route[self.time.clock_time] = self.origin, '--->', current_package.info['vertex']
         distance = float(dict_dict[current_package.vertex][self.origin])
         self.time.add(self.minutes_per_mile(distance))
-        self.log_marginal_dist[self.time.clock_time] = '+' + str(distance)
         self.total_distance += distance
-        self.log_total_dist[self.time.clock_time] = round(self.total_distance, 2)
         current_package.info['delivery status'] = 'delivered'
         self.origin = current_package.vertex
         self.delivered += 1
@@ -226,14 +218,11 @@ class Truck:
             self.return_to_hub()
 
     def return_to_hub(self):
-        self.log_route[self.time.clock_time] = 'Returning to Hub'
         dict_dict = csv_reader.adjacency_matrix()
         distance = float(dict_dict[0][self.origin])
-        self.log_marginal_dist[self.time.clock_time] = '+' + str(distance)
         self.time.add(self.minutes_per_mile(distance))
         self.total_distance += distance
         self.origin = 0
-        self.log_total_dist[self.time.clock_time] = round(self.total_distance, 2)
 
     def get_total_distance(self):
         return round(self.total_distance, 2)
@@ -242,4 +231,3 @@ class Truck:
         for pkg in self.inventory:
             if 'wrong address' in pkg.info['Special Notes'].lower():
                 pkg.info['vertex'] = 19
-

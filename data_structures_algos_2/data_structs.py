@@ -86,37 +86,3 @@ class HashTable:
     def __iter__(self):
         for key in self.keys():
             yield key, self.get(key)
-
-
-class Node:
-    def __init__(self, data):
-        self.data = data
-        self.next = None
-        self.prev = None
-
-
-class CircularLinkedList:
-    def __init__(self):
-        self.head = None
-        self.tail = None
-
-    def append(self, data):
-        new_node = Node(data)
-        if self.head is None:
-            self.head = new_node
-            self.head.next = new_node
-            self.tail = new_node
-        else:
-            self.tail.next = new_node
-            new_node.prev = self.tail
-            self.tail = new_node
-            self.head.prev = self.tail
-            self.tail.next = self.head
-
-    def __iter__(self):
-        iter_node = self.head
-        while True:
-            yield iter_node.data
-            iter_node = iter_node.next
-            if iter_node is self.head:
-                break
