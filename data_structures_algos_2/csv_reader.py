@@ -54,5 +54,6 @@ def get_package_info(package_id):
                 for field in headers:
                     package_info.add(field, row[field])
                 package_info.add('delivery status', 'at hub')
+                package_info.add('trip', None)
 
     return package_info

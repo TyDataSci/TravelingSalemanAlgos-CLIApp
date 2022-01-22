@@ -18,6 +18,7 @@ def nearest_neighbor(curr_vertex, _list_):
         _next_ = _list_.pop(_list_.index(nearest_package))
         nearest_n_list.append(_next_)
         curr_vertex = nearest_vertex
+    return _list_
 
 
 def map_direction():
