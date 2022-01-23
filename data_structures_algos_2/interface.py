@@ -24,6 +24,27 @@ def run_simulator():
     return delivery_hub, north_bound_truck, south_bound_truck
 
 
+def dict_to_table(dict_table):
+    for k, v in dict_table.items():
+        temp = []
+        for i in range(len(v)):
+            key_len = len(k)
+            val_len = len(str(dict_table[k][i]))
+            space_len = key_len - val_len
+            if space_len < 0:
+                temp.append(dict_table[k][i] + '|')
+            else:
+                space = ' ' * space_len
+                temp.append(dict_table[k][i] + space + '\t|')
+        dict_table[k] = temp
+    for k in list(dict_table.keys()):
+        key = k + '\t|'
+        dict_table[key] = dict_table.pop(k)
+    for each_row in zip(*([i] + j
+                          for i, j in dict_table.items())):
+        print(*each_row, " ")
+
+
 class Interface:
     def __init__(self, hub, truck1, truck2):
         self.hub = hub
@@ -153,24 +174,7 @@ class Interface:
                                      index=False))
         else:
             print('\n')
-            for k, v in dict_table.items():
-                temp = []
-                for i in range(len(v)):
-                    key_len = len(k)
-                    val_len = len(str(dict_table[k][i]))
-                    space_len = key_len - val_len
-                    if space_len < 0:
-                        temp.append(dict_table[k][i] + '|')
-                    else:
-                        space = ' '*space_len
-                        temp.append(dict_table[k][i] + space + '\t|')
-                dict_table[k] = temp
-            for k in list(dict_table.keys()):
-                key = k + '\t|'
-                dict_table[key] = dict_table.pop(k)
-            for each_row in zip(*([i] + j
-                                  for i, j in dict_table.items())):
-                print(*each_row, " ")
+            dict_to_table(dict_table)
 
         self.menu()
 
@@ -195,24 +199,8 @@ class Interface:
                                      index=False))
         else:
             print('\n')
-            for k, v in dict_table.items():
-                temp = []
-                for i in range(len(v)):
-                    key_len = len(k)
-                    val_len = len(str(dict_table[k][i]))
-                    space_len = key_len - val_len
-                    if space_len < 0:
-                        temp.append(dict_table[k][i] + '|')
-                    else:
-                        space = ' ' * space_len
-                        temp.append(dict_table[k][i] + space + '\t|')
-                dict_table[k] = temp
-            for k in list(dict_table.keys()):
-                key = k + '\t|'
-                dict_table[key] = dict_table.pop(k)
-            for each_row in zip(*([i] + j
-                                  for i, j in dict_table.items())):
-                print(*each_row, "  ")
+            dict_to_table(dict_table)
+
         self.menu()
 
     def display_delayed_times(self):
@@ -239,24 +227,8 @@ class Interface:
                                      index=False))
         else:
             print('\n')
-            for k, v in dict_table.items():
-                temp = []
-                for i in range(len(v)):
-                    key_len = len(k)
-                    val_len = len(str(dict_table[k][i]))
-                    space_len = key_len - val_len
-                    if space_len < 0:
-                        temp.append(dict_table[k][i] + '|')
-                    else:
-                        space = ' ' * space_len
-                        temp.append(dict_table[k][i] + space + '\t|')
-                dict_table[k] = temp
-            for k in list(dict_table.keys()):
-                key = k + '\t|'
-                dict_table[key] = dict_table.pop(k)
-            for each_row in zip(*([i] + j
-                                  for i, j in dict_table.items())):
-                print(*each_row, "  ")
+            dict_to_table(dict_table)
+
         self.menu()
 
     def display_special_trip(self):
@@ -287,24 +259,7 @@ class Interface:
             print(df.to_string(col_space=30,
                                index=False))
         else:
-            for k, v in dict_table.items():
-                temp = []
-                for i in range(len(v)):
-                    key_len = len(k)
-                    val_len = len(str(dict_table[k][i]))
-                    space_len = key_len - val_len
-                    if space_len < 0:
-                        temp.append(dict_table[k][i] + '|')
-                    else:
-                        space = ' ' * space_len
-                        temp.append(dict_table[k][i] + space + '\t|')
-                dict_table[k] = temp
-            for k in list(dict_table.keys()):
-                key = k + '\t|'
-                dict_table[key] = dict_table.pop(k)
-            for each_row in zip(*([i] + j
-                                  for i, j in dict_table.items())):
-                print(*each_row, " ")
+            dict_to_table(dict_table)
 
         self.menu()
 
@@ -357,23 +312,6 @@ class Interface:
                                      index=False))
         else:
             print('\n')
-            for k, v in dict_table.items():
-                temp = []
-                for i in range(len(v)):
-                    key_len = len(k)
-                    val_len = len(str(dict_table[k][i]))
-                    space_len = key_len - val_len
-                    if space_len < 0:
-                        temp.append(dict_table[k][i] + '|')
-                    else:
-                        space = ' ' * space_len
-                        temp.append(dict_table[k][i] + space + '\t|')
-                dict_table[k] = temp
-            for k in list(dict_table.keys()):
-                key = k + '\t|'
-                dict_table[key] = dict_table.pop(k)
-            for each_row in zip(*([i] + j
-                                  for i, j in dict_table.items())):
-                print(*each_row, " ")
+            dict_to_table(dict_table)
 
         self.menu()
