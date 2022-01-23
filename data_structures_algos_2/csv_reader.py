@@ -18,9 +18,9 @@ def get_vertices():
 
 def adjacency_matrix():
     vertices = get_vertices()
-    dict_of_dict = {}
+    dict_of_dict = HashTable()
     for i in range(len(vertices)):
-        single_dict = {}
+        single_dict = HashTable()
         with open(distance_file) as f:
             spam = csv.DictReader(f)
             for row in spam:

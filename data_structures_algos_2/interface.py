@@ -5,8 +5,8 @@ from datetime import datetime
 def run_simulator():
     delivery_hub = depot.Depot()
     delivery_hub.receive_packages()
-    north_bound_truck = depot.Truck('North')
-    south_bound_truck = depot.Truck('South')
+    north_bound_truck = depot.Truck('North', delivery_hub)
+    south_bound_truck = depot.Truck('South', delivery_hub)
     delivery_hub.determine_truck_ready_hold(north_bound_truck, south_bound_truck)
     south_bound_truck.time.add(_minutes_=66)
     delivery_hub.ready_held_packages(north_bound_truck, south_bound_truck)
@@ -24,7 +24,7 @@ def run_simulator():
     return delivery_hub, north_bound_truck, south_bound_truck
 
 
-class interface:
+class Interface:
     def __init__(self, hub, truck1, truck2):
         self.hub = hub
         self.truck1 = truck1
@@ -122,7 +122,7 @@ class interface:
         _sts = []
         _sts_time = []
         _trp = []
-        self.hub.fix_wrong_address_display(time_input)
+        self.hub.fix_wrong_address_display(time_input, '9')
         for pkg in self.hub.inventory:
             if datetime.strptime(pkg.delivered, '%H:%M %p') > time_input:
                 if datetime.strptime(pkg.en_route, '%H:%M %p') > time_input:
@@ -156,7 +156,14 @@ class interface:
             for k, v in dict_table.items():
                 temp = []
                 for i in range(len(v)):
-                    temp.append(dict_table[k][i] + '\t|')
+                    key_len = len(k)
+                    val_len = len(str(dict_table[k][i]))
+                    space_len = key_len - val_len
+                    if space_len < 0:
+                        temp.append(dict_table[k][i] + '|')
+                    else:
+                        space = ' '*space_len
+                        temp.append(dict_table[k][i] + space + '\t|')
                 dict_table[k] = temp
             for k in list(dict_table.keys()):
                 key = k + '\t|'
@@ -191,7 +198,14 @@ class interface:
             for k, v in dict_table.items():
                 temp = []
                 for i in range(len(v)):
-                    temp.append(dict_table[k][i] + '\t|')
+                    key_len = len(k)
+                    val_len = len(str(dict_table[k][i]))
+                    space_len = key_len - val_len
+                    if space_len < 0:
+                        temp.append(dict_table[k][i] + '|')
+                    else:
+                        space = ' ' * space_len
+                        temp.append(dict_table[k][i] + space + '\t|')
                 dict_table[k] = temp
             for k in list(dict_table.keys()):
                 key = k + '\t|'
@@ -228,7 +242,14 @@ class interface:
             for k, v in dict_table.items():
                 temp = []
                 for i in range(len(v)):
-                    temp.append(dict_table[k][i] + '\t|')
+                    key_len = len(k)
+                    val_len = len(str(dict_table[k][i]))
+                    space_len = key_len - val_len
+                    if space_len < 0:
+                        temp.append(dict_table[k][i] + '|')
+                    else:
+                        space = ' ' * space_len
+                        temp.append(dict_table[k][i] + space + '\t|')
                 dict_table[k] = temp
             for k in list(dict_table.keys()):
                 key = k + '\t|'
@@ -269,7 +290,14 @@ class interface:
             for k, v in dict_table.items():
                 temp = []
                 for i in range(len(v)):
-                    temp.append(dict_table[k][i] + '\t|')
+                    key_len = len(k)
+                    val_len = len(str(dict_table[k][i]))
+                    space_len = key_len - val_len
+                    if space_len < 0:
+                        temp.append(dict_table[k][i] + '|')
+                    else:
+                        space = ' ' * space_len
+                        temp.append(dict_table[k][i] + space + '\t|')
                 dict_table[k] = temp
             for k in list(dict_table.keys()):
                 key = k + '\t|'
@@ -303,36 +331,43 @@ class interface:
         _dvt = []
         _spcn = []
         _trp = []
-        for pkg in self.hub.inventory:
-            if pkg.info['package ID number'] == str(id_input):
-                _id.append(pkg.info['package ID number'])
-                _vx.append(pkg.info['delivery address'])
-                _dcty.append(pkg.info['delivery city'])
-                _dzip.append(pkg.info['delivery zip code'])
-                _dwt.append(pkg.info['package weight'])
-                _dd.append(pkg.info['delivery deadline'])
-                _sts.append(pkg.info['delivery status'])
-                _athub.append(pkg.at_hub)
-                _enrt.append(pkg.en_route)
-                _dvt.append(pkg.delivered)
-                _spcn.append(pkg.info['Special Notes'])
-                _trp.append(pkg.info['trip'])
+        pkg = self.hub.package_id_lookup.get(str(id_input))
+        if pkg:
+            _id.append(pkg.info['package ID number'])
+            _vx.append(pkg.info['delivery address'])
+            _dcty.append(pkg.info['delivery city'])
+            _dzip.append(pkg.info['delivery zip code'])
+            _dwt.append(pkg.info['package weight'])
+            _dd.append(pkg.info['delivery deadline'])
+            _sts.append(pkg.info['delivery status'])
+            _athub.append(pkg.at_hub)
+            _enrt.append(pkg.en_route)
+            _dvt.append(pkg.delivered)
+            _spcn.append(pkg.info['Special Notes'])
+            _trp.append(pkg.info['trip'])
 
-        dict_table = {'package ID': _id, 'address': _vx, 'city': _dcty,
-                      'zip': _dzip, 'weight': _dwt, 'deadline': _dd,
-                      'at hub': _athub, 'en route': _enrt, 'delivered': _dvt,
-                      'delivery status': _sts, 'trip': _trp, 'special notes': _spcn}
+        dict_table = {'package ID': _id, 'delivery address': _vx, 'delivery city': _dcty,
+                      'delivery zip code': _dzip, 'delivery weight': _dwt, 'delivery deadline': _dd,
+                      'at hub time': _athub, 'en route time': _enrt, 'delivered time': _dvt,
+                      'delivery status': _sts, 'truck trip': _trp, 'special notes': _spcn}
         if self.pandas:
             from pandas import DataFrame
             df = DataFrame(dict_table)
-            print('\n', df.to_string(col_space=15,
+            print('\n', df.to_string(col_space=20,
                                      index=False))
         else:
             print('\n')
             for k, v in dict_table.items():
                 temp = []
                 for i in range(len(v)):
-                    temp.append(dict_table[k][i] + '\t|')
+                    key_len = len(k)
+                    val_len = len(str(dict_table[k][i]))
+                    space_len = key_len - val_len
+                    if space_len < 0:
+                        temp.append(dict_table[k][i] + '|')
+                    else:
+                        space = ' ' * space_len
+                        temp.append(dict_table[k][i] + space + '\t|')
                 dict_table[k] = temp
             for k in list(dict_table.keys()):
                 key = k + '\t|'

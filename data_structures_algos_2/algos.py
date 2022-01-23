@@ -1,6 +1,9 @@
 from csv_reader import adjacency_matrix
+from data_structs import HashTable
 
 
+# Given a list, this will calculate nearest neighbor of each element in list.
+# current vertex is given to begin algorithm, can be in list or not (curr vertex is generally hub) -> n^2)
 def nearest_neighbor(curr_vertex, _list_):
     adj_matrix = adjacency_matrix()
     nearest_n_list = []
@@ -29,8 +32,7 @@ def map_direction():
     north = None
     south = None
     midpoint = None
-    north_bound = None
-    south_bound = None
+    map_direction_lookup = HashTable()
     for i in adj_matrix.keys():
         for j in adj_matrix.keys():
             if adj_matrix[i][j] > maximum:
@@ -50,18 +52,18 @@ def map_direction():
                     minimum = dif_dist
                     midpoint = v
         skip.append(midpoint)
-        north_bound = [north]
-        south_bound = [south]
-    if north_bound and south_bound:
+        map_direction_lookup.add(north, 'North')
+        map_direction_lookup.add(south, 'South')
+    if map_direction_lookup:
         for v in adj_matrix.keys():
             if v not in skip:
                 if adj_matrix[north][v] <= adj_matrix[north][midpoint]:
-                    north_bound.append(v)
+                    map_direction_lookup.add(v, 'North')
                 else:
-                    south_bound.append(v)
+                    map_direction_lookup.add(v, 'South')
         if adj_matrix[north][midpoint] < adj_matrix[south][midpoint]:
-            north_bound.append(midpoint)
+            map_direction_lookup.add(midpoint, 'North')
         else:
-            south_bound.append(midpoint)
+            map_direction_lookup.add(midpoint, 'South')
 
-    return north_bound, south_bound
+    return map_direction_lookup

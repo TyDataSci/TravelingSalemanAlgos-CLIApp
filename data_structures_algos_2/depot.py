@@ -3,6 +3,7 @@ from datetime import time
 import algos
 import csv_reader
 import time_delta
+from data_structs import HashTable
 from package import Package
 from algos import nearest_neighbor
 
@@ -16,12 +17,17 @@ class Depot:
         self.south_bound_hold = []
         self.must_be_together = []
         self.must_be_together_direction = None
+        self.correct_bad_address = [{'id': '9', 'address': '410 S State St',
+                                     'zip': 'Salt Lake City', 'city': '84111',
+                                     'vertex': 19}]
+        self.package_id_lookup = HashTable()
 
     def receive_packages(self):
         for item in csv_reader.get_package_ids():
             pkg = Package(item)
             pkg.at_hub = time_delta.Time(8, 0).clock_time
             self.inventory.append(pkg)
+            self.package_id_lookup.add(pkg.info['package ID number'], pkg)
 
     @staticmethod
     def reroute_truck(truck):
@@ -40,9 +46,9 @@ class Depot:
         self.south_bound_ready = nearest_neighbor(priority, self.south_bound_ready)
 
     def determine_truck_ready_hold(self, n_truck, s_truck):
-        north_bound, south_bound = algos.map_direction()
+        map_direction_lookup = algos.map_direction()
         for pkg in self.inventory:
-            if pkg.vertex in north_bound:
+            if map_direction_lookup[pkg.vertex] == 'North':
                 if 'delayed' in pkg.info['Special Notes'].lower() and n_truck.time.time_delta < time(9, 5):
                     pkg.at_hub = time_delta.Time(9, 5).clock_time
                     self.north_bound_hold.append(pkg)
@@ -141,14 +147,12 @@ class Depot:
                 self.south_bound_ready.append(self.north_bound_ready.pop(0))
 
     def packages_must_be_together(self, special_packages):
-        must_be_together = []
         n_freq = 0
         s_freq = 0
-        for pkg in self.inventory:
-            if pkg.info['package ID number'] in special_packages:
-                must_be_together.append(pkg)
-        self.must_be_together = must_be_together
-        for pkg in must_be_together:
+        if not self.must_be_together:
+            for pkg_id in special_packages:
+                self.must_be_together.append(self.package_id_lookup[pkg_id])
+        for pkg in self.must_be_together:
             if pkg.info['delivery status'] == 'delivered':
                 return
             if pkg in self.north_bound_ready:
@@ -162,7 +166,7 @@ class Depot:
         else:
             self.must_be_together_direction = 'South'
 
-    def fix_wrong_address_display(self, time_input):
+    def fix_wrong_address_display(self, time_input, pkg_id):
         if time_input.time() > time(10, 19):
             address = '410 S State St'
             zip_ = 'Salt Lake City'
@@ -171,16 +175,17 @@ class Depot:
             address = '300 State St'
             zip_ = 'Salt Lake City'
             city = '84103'
-        for pkg in self.inventory:
-            if 'wrong address' in pkg.info['Special Notes'].lower():
-                pkg.info['delivery address'] = address
-                pkg.info['delivery city'] = zip_
-                pkg.info['delivery zip code'] = city
+        pkg = self.package_id_lookup.get(pkg_id)
+        if pkg:
+            pkg.info['delivery address'] = address
+            pkg.info['delivery city'] = zip_
+            pkg.info['delivery zip code'] = city
 
 
 class Truck:
-    def __init__(self, name):
+    def __init__(self, name, depot):
         self.name = name
+        self.depot = depot
         self.inventory = deque()
         self.time = time_delta.Time(8, 0)
         self.total_distance = 0
@@ -228,6 +233,12 @@ class Truck:
         return round(self.total_distance, 2)
 
     def fix_wrong_address_package(self):
-        for pkg in self.inventory:
-            if 'wrong address' in pkg.info['Special Notes'].lower():
-                pkg.info['vertex'] = 19
+        if self.depot.correct_bad_address:
+            correct_address = self.depot.correct_bad_address[0]
+            pkg = self.depot.package_id_lookup.get(correct_address['id'])
+            if pkg:
+                correct_address = self.depot.correct_bad_address.pop(0)
+                pkg.info['vertex'] = correct_address['vertex']
+                pkg.info['delivery address'] = correct_address['address']
+                pkg.info['delivery city'] = correct_address['zip']
+                pkg.info['delivery zip code'] = correct_address['city']
