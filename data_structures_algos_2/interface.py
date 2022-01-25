@@ -257,7 +257,7 @@ class Interface:
 
         self.menu()
 
-    # Display all packages whose special instructions required a specific truck or part of a specific  --> O(n)
+    # Display all packages whose special instructions required a specific truck or part of a specific trip  --> O(n)
     def display_special_trip(self):
         _id = []
         _spcn = []
