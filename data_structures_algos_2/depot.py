@@ -24,7 +24,7 @@ class Depot:
                                      'zip': 'Salt Lake City', 'city': '84111',
                                      'vertex': 19}]
         self.package_id_lookup = HashTable()
-        self.adjacency_matrix = algos.adjacency_matrix()
+        self.adjacency_matrix = csv_reader.adjacency_matrix()
         self.map_direction = algos.map_direction(self.adjacency_matrix)
 
 
