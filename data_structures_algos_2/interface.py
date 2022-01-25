@@ -1,6 +1,24 @@
 import depot
 from datetime import datetime
 
+'''The Hub initializes all Packages and places them in Hub inventory for prioritization.
+Initialize Truck1(North) and Truck2(South).
+Map Direction classifies each package’s vertex as a North or South location.
+If no delay Hub groups packages in North/South Ready queue,
+Else if delay, Hub groups package in North/South Hold queue.
+All packages that must be together are placed in the truck containing the majority.
+North and South truck begins route at 8 AM.
+
+While Ready Queue has packages and truck inventory is not at capacity:
+Each Ready (North/South) queue is sorted by the Nearest Neighbor algorithm.
+Ready queue top is popped off and placed in truck inventory.	
+While truck has inventory:
+Each Package is delivered. Miles traveled are added to truck total.
+Time is calculated as a function of miles and added to truck time.
+When truck inventory is empty it will return to the Hub.
+Packages in the Hold queue that are now available given time are placed in Ready queue. --> O(n^2)
+'''
+
 
 def run_simulator():
     delivery_hub = depot.Depot()
@@ -8,8 +26,6 @@ def run_simulator():
     north_bound_truck = depot.Truck('North', delivery_hub)
     south_bound_truck = depot.Truck('South', delivery_hub)
     delivery_hub.determine_truck_ready_hold(north_bound_truck, south_bound_truck)
-    south_bound_truck.time.add(_minutes_=66)
-    delivery_hub.ready_held_packages(north_bound_truck, south_bound_truck)
     while delivery_hub.north_bound_ready or delivery_hub.south_bound_ready:
         delivery_hub.route_north_bound()
         delivery_hub.load_north_bound(north_bound_truck)
@@ -24,6 +40,7 @@ def run_simulator():
     return delivery_hub, north_bound_truck, south_bound_truck
 
 
+# Formats dictionary as a table using standard lib library --> O(n^2)
 def dict_to_table(dict_table):
     for k, v in dict_table.items():
         temp = []
@@ -54,13 +71,16 @@ class Interface:
         self.command_not_allowed = []
         self.pandas = True
 
+    # Welcome Screen launched on application start --> O(1)
     def launch_interface(self, pandas=True):
         if pandas:
             try:
                 from pandas import DataFrame
             except ImportError:
-                print('This feature is not available.')
-                self.command_not_allowed.append(self.acceptable_input.pop(self.acceptable_input.index('p')))
+                print('Pandas feature is not available.')
+                if 'p' in self.acceptable_input:
+                    self.acceptable_input = ['0', '1', '2', '3', '4', '5', '6']
+                    self.command_not_allowed.append('p')
                 self.launch_interface(pandas=False)
         self.pandas = pandas
         space = '\n' * 4
@@ -70,6 +90,7 @@ class Interface:
         print('-------------------------' * 2)
         self.display_mileage()
 
+    # Displays total miles traveled and both trucks total miles --> O(1)
     def display_mileage(self):
         total = f'\nAll packages were delivered in'
         total = f'{total} {round(self.truck1.get_total_distance() + self.truck2.get_total_distance(), 2)} miles.'
@@ -79,6 +100,7 @@ class Interface:
         print(total_each_trk)
         self.menu()
 
+    # Displays command options for menu --> O(1)
     def menu(self):
         print('-------------------------' * 2)
         print('\t\t\tWGUPS Program Menu')
@@ -96,6 +118,7 @@ class Interface:
         print('[0] Exit Program')
         self.menu_input()
 
+    # Takes an input and handles it by either calling the corresponding function or returning error message. --> O(n^2)
     def menu_input(self):
         acceptable_input = self.acceptable_input
         menu_input = str(input('Enter a Command:')).lower()
@@ -123,8 +146,9 @@ class Interface:
             self.launch_interface(pandas=True)
         elif menu_input == '0':
             print('Good bye.')
-            return
+            quit()
 
+    # displays all package info at a given time --> O(n^2)
     def display_pkg_table(self):
         time_input = input('Enter a time in HH:MM format:')
         try:
@@ -178,6 +202,7 @@ class Interface:
 
         self.menu()
 
+    # Displays each package deadline and the time at which they were delivered --> O(n)
     def display_arrival_times(self):
         _id = []
         _dd = []
@@ -203,6 +228,7 @@ class Interface:
 
         self.menu()
 
+    # Display packages whose special instructions required it to be delayed --> O(n)
     def display_delayed_times(self):
         _id = []
         _athb = []
@@ -231,8 +257,8 @@ class Interface:
 
         self.menu()
 
+    # Display all packages whose special instructions required a specific truck or part of a specific  --> O(n)
     def display_special_trip(self):
-
         _id = []
         _spcn = []
         _trp = []
@@ -263,6 +289,7 @@ class Interface:
 
         self.menu()
 
+    # Displays all info of a specific package --> O(1)
     def display_single_package(self):
         id_input = input('Enter a package ID:')
         try:

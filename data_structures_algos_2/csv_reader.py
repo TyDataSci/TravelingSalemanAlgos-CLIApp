@@ -5,6 +5,7 @@ package_file = 'data/WGU_package_file.csv'
 distance_file = 'data/WGUPS_distance_table.csv'
 
 
+# Returns all vertices contained in dist table file --> O(n)
 def get_vertices():
     vertices = []
     import csv
@@ -16,6 +17,7 @@ def get_vertices():
     return vertices
 
 
+# Returns all vertices by all vertices with their distances contained in dist table file --> O(n^2)
 def adjacency_matrix():
     vertices = get_vertices()
     dict_of_dict = HashTable()
@@ -30,6 +32,7 @@ def adjacency_matrix():
     return dict_of_dict
 
 
+# Returns all package ids contained in package file --> O(n)
 def get_package_ids():
     ids = []
     with open(package_file) as f:
@@ -40,6 +43,7 @@ def get_package_ids():
     return ids
 
 
+# Returns all package information of a given package contained in package file --> O(n)
 def get_package_info(package_id):
     package_info = HashTable()
     with open(package_file) as f:

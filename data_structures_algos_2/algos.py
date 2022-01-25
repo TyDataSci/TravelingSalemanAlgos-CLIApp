@@ -1,11 +1,19 @@
 from csv_reader import adjacency_matrix
 from data_structs import HashTable
 
+'''For every package in the input list:
+Check the distance from package’s vertex to the current vertex. If it is less than nearest distance. 
+Set package as nearest package.
+Once all items in list have been checked, the nearest package will be found.
+Pop the nearest package from the input list.
+Append the nearest package as the next package in the nearest neighbor list.
+Update the current vertex. Repeat process until only one package remains in input list.
+If the length of the input list is 1, pop remaining package off input,
+ append as next package in the nearest neighbor list and return the nearest neighbor sorted list.-> O(n^2)
+'''
 
-# Given a list, this will calculate nearest neighbor of each element in list.
-# current vertex is given to begin algorithm, can be in list or not (curr vertex is generally hub) -> n^2)
-def nearest_neighbor(curr_vertex, _list_):
-    adj_matrix = adjacency_matrix()
+
+def nearest_neighbor(curr_vertex, adj_matrix, _list_):
     nearest_n_list = []
     while _list_:
         if len(_list_) == 1:
@@ -26,12 +34,21 @@ def nearest_neighbor(curr_vertex, _list_):
     return _list_
 
 
+'''For all distances between vertices, find the two vertices with the greatest distance.
+Set the first vertex to North and the other South (Not literal, simplified attribute name).
+Find the midpoint (average distance that splits the North and South vertices).
+Add North and South to the hash table with their respective classification: ‘North’, ‘South’.
+For each vertex (excluding North, South) if the distance between North and Vertex is less than the midpoint,
+ classify vertex as ‘North’, Else classify the vertex as ‘South’.
+Return the map direction lookup hash table with classified vertices. # -> O(n^2)
+'''
+
+
 def map_direction():
     adj_matrix = adjacency_matrix()
     maximum = -1
     north = None
     south = None
-    midpoint = None
     map_direction_lookup = HashTable()
     for i in adj_matrix.keys():
         for j in adj_matrix.keys():
@@ -39,31 +56,16 @@ def map_direction():
                 maximum = adj_matrix[i][j]
                 north = j
                 south = i
-    minimum = 2 ** 32
     mid = maximum / 2
     skip = [north, south]
-    if north and south:
-        for v in adj_matrix.keys():
-            if v not in skip:
-                sum_dist = adj_matrix[v][north] + adj_matrix[v][south]
-                avg_dist = sum_dist / 2
-                dif_dist = abs(avg_dist - mid)
-                if dif_dist < minimum:
-                    minimum = dif_dist
-                    midpoint = v
-        skip.append(midpoint)
-        map_direction_lookup.add(north, 'North')
-        map_direction_lookup.add(south, 'South')
+    map_direction_lookup.add(north, 'North')
+    map_direction_lookup.add(south, 'South')
     if map_direction_lookup:
         for v in adj_matrix.keys():
             if v not in skip:
-                if adj_matrix[north][v] <= adj_matrix[north][midpoint]:
+                if adj_matrix[north][v] <= mid:
                     map_direction_lookup.add(v, 'North')
                 else:
                     map_direction_lookup.add(v, 'South')
-        if adj_matrix[north][midpoint] < adj_matrix[south][midpoint]:
-            map_direction_lookup.add(midpoint, 'North')
-        else:
-            map_direction_lookup.add(midpoint, 'South')
 
     return map_direction_lookup

@@ -8,6 +8,9 @@ from package import Package
 from algos import nearest_neighbor
 
 
+# Delivery Hub used to create trucks, packages and manage both efficiently.
+# Stores package id, map_direction, and adjacency_matrix hash tables as well as multiple lists packages
+# so that algorithm will only need to be called one time initialization and used until program completion--> O(n^2)
 class Depot:
     def __init__(self):
         self.inventory = []
@@ -21,7 +24,10 @@ class Depot:
                                      'zip': 'Salt Lake City', 'city': '84111',
                                      'vertex': 19}]
         self.package_id_lookup = HashTable()
+        self.map_direction = algos.map_direction()
+        self.adjacency_matrix = algos.adjacency_matrix()
 
+    # Creates all packages, places them in inventory, creates package lookup hash table using package ID --> O(n)
     def receive_packages(self):
         for item in csv_reader.get_package_ids():
             pkg = Package(item)
@@ -29,24 +35,30 @@ class Depot:
             self.inventory.append(pkg)
             self.package_id_lookup.add(pkg.info['package ID number'], pkg)
 
+    # Sorts truck inventory a second time to compensated for a special update to original order: Origin:hub --> O(n^2)
     @staticmethod
     def reroute_truck(truck):
-        truck.inventory = deque(nearest_neighbor(0, list(truck.inventory)))
+        truck.inventory = deque(nearest_neighbor(0, truck.depot.adjacency_matrix, list(truck.inventory)))
 
+    # Sorts north bound ready inventory original order: Origin:hub --> O(n^2)
     def route_north_bound(self):
-        self.north_bound_ready = nearest_neighbor(0, self.north_bound_ready)
+        self.north_bound_ready = nearest_neighbor(0, self.adjacency_matrix, self.north_bound_ready)
 
+    # Sorts north bound ready inventory original order: Origin:Parameterized vertex --> O(n^2)
     def route_north_bound_with_priority(self, priority):
-        self.north_bound_ready = nearest_neighbor(priority, self.north_bound_ready)
+        self.north_bound_ready = nearest_neighbor(priority, self.adjacency_matrix, self.north_bound_ready)
 
+    # Sorts south bound ready inventory original order: Origin:hub --> O(n^2)
     def route_south_bound(self):
-        self.south_bound_ready = nearest_neighbor(0, self.south_bound_ready)
+        self.south_bound_ready = nearest_neighbor(0, self.adjacency_matrix, self.south_bound_ready)
 
+    # Sorts south bound ready inventory original order: Origin:Parameterized vertex --> O(n^2)
     def route_south_bound_with_priority(self, priority):
-        self.south_bound_ready = nearest_neighbor(priority, self.south_bound_ready)
+        self.south_bound_ready = nearest_neighbor(priority, self.adjacency_matrix, self.south_bound_ready)
 
+    # Sort Packages by there direction and ready/hold requirements as well as other special requirements --> O(n)
     def determine_truck_ready_hold(self, n_truck, s_truck):
-        map_direction_lookup = algos.map_direction()
+        map_direction_lookup = self.map_direction
         for pkg in self.inventory:
             if map_direction_lookup[pkg.vertex] == 'North':
                 if 'delayed' in pkg.info['Special Notes'].lower() and n_truck.time.time_delta < time(9, 5):
@@ -66,6 +78,7 @@ class Depot:
                     self.south_bound_ready.append(pkg)
         self.packages_must_be_together(['13', '14', '15', '16', '19', '20'])
 
+    # Loads the north truck with mandatory packages first if they exist then with sorted priority --> O(n)
     def load_north_bound(self, truck):
         reroute_needed = False
         truck.trip += 1
@@ -90,6 +103,7 @@ class Depot:
         else:
             truck.reload_needed = False
 
+    # Loads the south truck with mandatory packages first if they exist then with sorted priority --> O(n)
     def load_south_bound(self, truck):
         reroute_needed = False
         truck.trip += 1
@@ -114,6 +128,7 @@ class Depot:
         else:
             truck.reload_needed = False
 
+    # pops any package in a hold queue whose time requirement has been met and places in a ready queue --> O(n)
     def ready_held_packages(self, n_truck, s_truck):
         count = 0
         n_length = len(self.north_bound_hold)
@@ -146,6 +161,7 @@ class Depot:
             while self.north_bound_ready:
                 self.south_bound_ready.append(self.north_bound_ready.pop(0))
 
+    # Creates a list of packages that are required to stay together on the same truck --> O(n)
     def packages_must_be_together(self, special_packages):
         n_freq = 0
         s_freq = 0
@@ -166,6 +182,7 @@ class Depot:
         else:
             self.must_be_together_direction = 'South'
 
+    # Displays the time of package 9 as its wrong address or correct address given the time --> O(1)
     def fix_wrong_address_display(self, time_input, pkg_id):
         if time_input.time() > time(10, 19):
             address = '410 S State St'
@@ -182,6 +199,7 @@ class Depot:
             pkg.info['delivery zip code'] = city
 
 
+# Requires name and depot to be initialized. Uses a deque data structure for efficient popleft functionality --> O(1)
 class Truck:
     def __init__(self, name, depot):
         self.name = name
@@ -196,23 +214,26 @@ class Truck:
         self.reload_needed = False
         self.trip = 0
 
+    # Checks inventory has room for additional package else stops load --> O(1)
     def load(self, package):
         if len(self.inventory) == self.capacity:
             return
         self.inventory.append(package)
 
+    # Defines time as a function of miles --> O(1)
     def minutes_per_mile(self, distance):
         return round(60 / self.speed * distance, 0)
 
+    # pops off the top package and delivers to package vertex. Given stored origin, calculates distance
+    # traveled updating total distance and time --> O(1)
     def deliver(self):
-        dict_dict = csv_reader.adjacency_matrix()
         if len(self.inventory) == 0:
             return
         elif self.time.time_delta > time(10, 20):
             self.fix_wrong_address_package()
         current_package = self.inventory.popleft()
         current_package.info['trip'] = f'{self.name} Trip #{self.trip}'
-        distance = float(dict_dict[current_package.vertex][self.origin])
+        distance = float(self.depot.adjacency_matrix[current_package.vertex][self.origin])
         self.time.add(self.minutes_per_mile(distance))
         self.total_distance += distance
         current_package.info['delivery status'] = 'delivered'
@@ -222,16 +243,18 @@ class Truck:
         if len(self.inventory) == 0:
             self.return_to_hub()
 
+    # Once truck is empty will return to hub, calculating distance by origin and hub, sets origin to hub --> O(1)
     def return_to_hub(self):
-        dict_dict = csv_reader.adjacency_matrix()
-        distance = float(dict_dict[0][self.origin])
+        distance = float(self.depot.adjacency_matrix[0][self.origin])
         self.time.add(self.minutes_per_mile(distance))
         self.total_distance += distance
         self.origin = 0
 
+    # Return total distance of truck rounded to two decimals --> O(1)
     def get_total_distance(self):
         return round(self.total_distance, 2)
 
+    # Once time requirement has been met, wrong address and vertex is updated to the correct address and vertex --> O(1)
     def fix_wrong_address_package(self):
         if self.depot.correct_bad_address:
             correct_address = self.depot.correct_bad_address[0]
