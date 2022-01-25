@@ -1,4 +1,3 @@
-from csv_reader import adjacency_matrix
 from data_structs import HashTable
 
 '''For every package in the input list:
