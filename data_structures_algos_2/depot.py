@@ -24,8 +24,9 @@ class Depot:
                                      'zip': 'Salt Lake City', 'city': '84111',
                                      'vertex': 19}]
         self.package_id_lookup = HashTable()
-        self.map_direction = algos.map_direction()
         self.adjacency_matrix = algos.adjacency_matrix()
+        self.map_direction = algos.map_direction(self.adjacency_matrix)
+
 
     # Creates all packages, places them in inventory, creates package lookup hash table using package ID --> O(n)
     def receive_packages(self):

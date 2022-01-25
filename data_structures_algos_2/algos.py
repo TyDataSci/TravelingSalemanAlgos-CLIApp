@@ -44,8 +44,7 @@ Return the map direction lookup hash table with classified vertices. # -> O(n^2)
 '''
 
 
-def map_direction():
-    adj_matrix = adjacency_matrix()
+def map_direction(adj_matrix):
     maximum = -1
     north = None
     south = None
